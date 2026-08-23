@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JANA.OS — Interactive Portfolio</title>
+<style>
+:root{
+ --bg:#06080d; --bg2:#0b1018; --glass:rgba(10,15,23,.88);
+ --glass2:rgba(15,21,31,.94); --line:rgba(255,255,255,.10);
+ --text:#eef2f6; --muted:#8d99a8; --accent:#7eb7d8; --accent2:#aacfe5;
+ --secret:#79f3ba; --danger:#c9586d; --shadow:0 28px 90px rgba(0,0,0,.58);
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden}
+body{
+ font-family:"Segoe UI Variable","Segoe UI",Tahoma,Arial,sans-serif;
+ color:var(--text); background:var(--bg); cursor:none;
+}
+button,input,a{font:inherit}
+a{color:inherit;text-decoration:none}
+.hidden{display:none!important}
+
+/* custom cursor */
+#cursor-dot,#cursor-ring{position:fixed;left:0;top:0;pointer-events:none;z-index:10000;transform:translate(-50%,-50%)}
+#cursor-dot{width:6px;height:6px;border-radius:50%;background:#d7edf8;box-shadow:0 0 12px rgba(126,183,216,.7)}
+#cursor-ring{width:30px;height:30px;border:1px solid rgba(170,207,229,.65);border-radius:50%;transition:width .18s,height .18s,border-color .18s,background .18s}
+body.cursor-hover #cursor-ring{width:46px;height:46px;border-color:var(--accent);background:rgba(126,183,216,.08)}
+.cursor-trail{position:fixed;width:4px;height:4px;border-radius:50%;background:var(--accent2);pointer-events:none;z-index:9997;animation:trail .65s ease-out forwards}
+@keyframes trail{to{opacity:0;transform:scale(3)}}
+
+/* boot */
+#boot{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;background:
+ radial-gradient(circle at 50% 48%,rgba(126,183,216,.11),transparent 22%),#05070b;transition:opacity .55s}
+.bootbox{text-align:center;width:min(420px,84vw)}
+.bootlogo{font-weight:700;font-size:clamp(46px,7vw,72px);letter-spacing:8px}
+.bootlogo span{color:var(--accent)}
+.bootline{height:2px;background:#171d26;margin:28px auto 14px;border-radius:30px;overflow:hidden}
+.bootline i{display:block;width:0;height:100%;background:linear-gradient(90deg,#517f9b,var(--accent2));animation:load 1.65s ease forwards}
+@keyframes load{to{width:100%}}
+#bootText{font:11px Consolas,monospace;color:#6f7c8a;letter-spacing:1px}
+
+/* desktop */
+#desktop{position:relative;width:100%;height:100%;background:
+ radial-gradient(circle at 78% 12%,rgba(62,112,145,.30),transparent 24%),
+ radial-gradient(circle at 18% 82%,rgba(39,70,96,.22),transparent 27%),
+ linear-gradient(145deg,#070a10,#0b111a 52%,#05070b)}
+#desktop:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;background:
+ linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:48px 48px}
+.topline{position:absolute;z-index:2;top:18px;left:24px;right:24px;display:flex;justify-content:space-between;color:#728091;font-size:11px;letter-spacing:.7px}
+.live{display:inline-flex;align-items:center;gap:8px}.live:before{content:"";width:6px;height:6px;border-radius:50%;background:#7bb5d7;box-shadow:0 0 10px #7bb5d7}
+.brand{position:absolute;z-index:1;right:6vw;top:48%;transform:translateY(-50%);text-align:right;pointer-events:none}
+.brand h1{margin:0;font-size:clamp(78px,12vw,170px);letter-spacing:-5px;line-height:.86;font-weight:300;color:#e9eef3}
+.brand h1 b{color:var(--accent);font-weight:300}
+.brand p{margin:22px 0 0;color:#748392;letter-spacing:2.4px;font-size:clamp(10px,1.1vw,13px)}
+.brand small{display:block;margin-top:8px;color:#4e5966;letter-spacing:1px}
+
+/* desktop icons */
+.icons{position:absolute;z-index:4;left:22px;top:66px;display:grid;grid-template-columns:repeat(2,96px);gap:10px 8px}
+.icon{padding:9px 4px;border:1px solid transparent;border-radius:12px;text-align:center;cursor:none}
+.icon:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.06)}
+.iconbox{width:50px;height:50px;margin:0 auto 7px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#17202c,#0c1119);border:1px solid rgba(255,255,255,.09);box-shadow:0 8px 22px #0006}
+.iconbox svg{width:24px;height:24px;stroke:#bdd9e9;fill:none;stroke-width:1.6}
+.iconlabel{font-size:11px;line-height:1.25;text-shadow:0 1px 6px #000}
+
+/* taskbar */
+#taskbar{position:absolute;z-index:500;bottom:13px;left:50%;transform:translateX(-50%);
+ height:57px;padding:7px 8px;display:flex;align-items:center;gap:4px;border-radius:17px;
+ background:rgba(8,12,18,.74);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.11);box-shadow:0 16px 50px #0008}
+.tb{width:42px;height:42px;border:0;background:transparent;color:#dce5eb;border-radius:11px;display:grid;place-items:center;cursor:none}
+.tb:hover{background:rgba(255,255,255,.07)}
+.tb svg{width:21px;height:21px;stroke:#c8d8e1;fill:none;stroke-width:1.7}
+#startBtn{font-weight:700;background:#101924;color:var(--accent2)}
+
+/* start */
+#start{position:absolute;z-index:700;left:50%;bottom:81px;transform:translateX(-50%);width:min(600px,92vw);height:525px;
+ background:rgba(8,13,20,.94);border:1px solid rgba(255,255,255,.12);border-radius:20px;backdrop-filter:blur(30px);box-shadow:var(--shadow);padding:22px}
+#startSearch{width:100%;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.09);background:#06090e;color:#eaf0f4;padding:0 13px;outline:none;cursor:text}
+.stitle{display:flex;justify-content:space-between;color:#768493;font-size:11px;margin:20px 4px 10px}
+.pins{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.pin{border-radius:11px;padding:10px 5px;text-align:center;font-size:11px;color:#cdd6dc;cursor:none}
+.pin:hover{background:rgba(255,255,255,.055)}
+.pinglyph{width:40px;height:40px;border-radius:11px;background:#111a25;margin:0 auto 7px;display:grid;place-items:center}
+.pinglyph svg{width:20px;height:20px;stroke:#b9d6e6;fill:none;stroke-width:1.7}
+.recommended{border-top:1px solid var(--line);margin-top:18px;padding-top:12px}
+.rec{display:flex;align-items:center;gap:12px;padding:9px;border-radius:10px;font-size:12px}.rec:hover{background:#ffffff07}
+.recfile{width:34px;height:34px;border-radius:8px;background:#101924;display:grid;place-items:center;color:#a9caDE}
+.rec small{display:block;color:#697685;margin-top:2px}
+
+/* windows */
+.window{position:absolute;z-index:30;left:50%;top:49%;transform:translate(-50%,-50%);
+ width:min(900px,88vw);height:min(620px,77vh);min-width:360px;min-height:260px;
+ background:var(--glass);border:1px solid rgba(255,255,255,.12);border-radius:15px;box-shadow:var(--shadow);backdrop-filter:blur(26px);overflow:hidden;animation:open .18s ease}
+.window.large{width:min(1080px,92vw);height:min(690px,82vh)}
+@keyframes open{from{opacity:0;transform:translate(-50%,-47%) scale(.985)}}
+.winbar{height:47px;padding-left:16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.018);cursor:none}
+.title{font-size:12px;color:#bdc7ce;display:flex;align-items:center;gap:9px}.title svg{width:17px;height:17px;stroke:#9ec6dd;fill:none;stroke-width:1.7}
+.controls{height:100%;display:flex;position:relative;z-index:5}.control{width:42px;height:100%;border:0;background:transparent;color:#82909e;cursor:none;pointer-events:auto}.control:hover{background:#ffffff08}.control.close{color:#aab5be;font-size:20px}.control.close:hover{background:#a94e60;color:#fff}
+.body{height:calc(100% - 47px);overflow:auto;user-select:text}
+.body::-webkit-scrollbar{width:8px}.body::-webkit-scrollbar-thumb{background:#27313d;border-radius:20px}
+.pad{padding:29px}
+.eyebrow{font-size:10px;letter-spacing:2.2px;color:#77aeca;text-transform:uppercase}
+h1,h2,h3,p{margin-top:0}h1{font-size:40px;letter-spacing:-1.6px}h2{font-size:24px}h3{font-size:15px}
+p{color:#aab4bf;line-height:1.67;font-size:13.5px}
+.meta{font-size:11.5px;color:#6f7c89}
+.rule{height:1px;background:var(--line);margin:24px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:13px;padding:17px}
+.card:hover{border-color:rgba(126,183,216,.34);background:rgba(126,183,216,.025)}
+.tag{display:inline-block;padding:5px 8px;margin:4px 3px 0 0;border:1px solid rgba(126,183,216,.20);background:rgba(126,183,216,.055);border-radius:999px;color:#acd0e3;font-size:10.5px}
+ul.clean{padding-left:18px;color:#aab4bf;font-size:13px;line-height:1.6}ul.clean li{margin:7px 0}
+
+/* profile */
+.profilehead{display:grid;grid-template-columns:100px 1fr;gap:22px;align-items:center}
+.avatar{width:98px;height:98px;border-radius:24px;background:linear-gradient(145deg,#2f5e78,#142a3b);border:1px solid #6ba2c0;display:grid;place-items:center;font-size:36px;font-weight:650;color:#d7edf8;box-shadow:0 18px 50px #0007}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:22px}.stat{border:1px solid var(--line);background:#ffffff04;border-radius:11px;padding:13px}.stat b{display:block;font-size:17px}.stat span{font-size:10px;color:#6f7c88}
+
+/* explorer/projects */
+.explorer{display:grid;grid-template-columns:190px 1fr;height:100%}
+.sidebar{background:#070b11;border-right:1px solid var(--line);padding:16px 11px}
+.side{padding:9px 10px;border-radius:8px;color:#74808d;font-size:11px;margin-bottom:3px}.side.active{background:#ffffff07;color:#cad3da}
+.files{padding:23px}
+.projectgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.project{padding:16px;border:1px solid var(--line);border-radius:13px;background:#ffffff03;cursor:none}
+.project:hover{background:#ffffff06;border-color:#39576a}
+.projicon{width:44px;height:44px;border-radius:11px;background:#0d151f;border:1px solid #24394a;display:grid;place-items:center;margin-bottom:14px}
+.projicon svg{width:23px;height:23px;stroke:#9dc5db;fill:none;stroke-width:1.6}
+.project small{display:block;color:#65727e;margin-top:6px}
+
+/* resume */
+.resume-shell{background:#0b1017;padding:26px}
+.resume-paper{max-width:820px;margin:auto;background:#fbfbfa;color:#202326;padding:36px 42px;box-shadow:0 20px 70px #0008}
+.resume-paper h1{font-size:29px;margin-bottom:3px;letter-spacing:.3px}.resume-paper h3{font-size:11px;letter-spacing:1.2px;margin:18px 0 7px}.resume-paper p,.resume-paper li{color:#34383b;font-size:10.7px;line-height:1.52}.resume-paper ul{padding-left:17px;margin:5px 0}.resume-paper .rmeta{font-size:9.6px;color:#5e6266}
+.resume-paper .rline{height:1px;background:#a6aaad;margin:11px 0}
+.resume-paper .skillline{margin:4px 0;font-size:10.4px}.resume-paper .skillline b{color:#181a1c}
+
+/* terminal */
+.terminal{height:100%;background:#020406;padding:17px;font:13px/1.62 Consolas,"Courier New",monospace;color:#d6e0e4;display:flex;flex-direction:column;cursor:text}
+.termheader{color:#71808a;border-bottom:1px solid #141a1e;padding-bottom:10px;margin-bottom:10px}
+#output{flex:1;overflow:auto;white-space:pre-wrap;user-select:text}
+.prompt{display:flex;gap:8px;color:var(--secret);align-items:center;margin-top:2px}
+#terminalInput{min-width:220px;flex:1;border:0;outline:none;background:transparent;color:#edf3f4;font:inherit;user-select:text;caret-color:var(--secret);cursor:text;padding:0}
+.cgreen{color:var(--secret)}.cblue{color:#8fc7e4}.cdim{color:#66747d}
+
+/* secret */
+#secret{position:fixed;inset:0;z-index:850;background:#020706;color:#d7f8ea;font-family:Consolas,monospace;overflow:auto;cursor:none}
+.scan{position:fixed;left:0;right:0;height:1px;background:#76efb6;box-shadow:0 0 15px #76efb6;opacity:.28;animation:scan 5s linear infinite;pointer-events:none}@keyframes scan{from{top:0}to{top:100%}}
+.secretwrap{max-width:1160px;margin:auto;padding:30px 22px 70px}.secrettop{display:flex;justify-content:space-between;border-bottom:1px solid #183d32;padding-bottom:14px;color:#6c9b89;font-size:11px}
+.granted{color:#76efb6}.secrethero{display:grid;grid-template-columns:1fr 300px;gap:30px;align-items:end;padding:52px 0 28px}
+.secrethero h1{font-family:Consolas,monospace;font-size:clamp(50px,8vw,92px);line-height:.9;letter-spacing:-5px;margin:0 0 18px;color:#e5fff4}
+.stamp{display:inline-block;border:2px solid #76efb6;color:#76efb6;padding:10px 13px;letter-spacing:2px;transform:rotate(-2deg)}
+.identity{border:1px solid #183d32;background:#06110d;padding:16px}.identity div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #15342b;font-size:11px}.identity div:last-child{border:0}
+.casegrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.case{position:relative;border:1px solid #183d32;background:#06110d;padding:18px}.case:after{content:"CLASSIFIED";position:absolute;right:12px;top:11px;font-size:9px;color:#24674f}.case h3{color:#76efb6}.case p{font-family:Consolas,monospace;color:#8eb4a5;font-size:11.5px}
+#exitSecret{position:fixed;right:20px;bottom:20px;border:1px solid #245d49;background:#07130f;color:#76efb6;padding:11px 15px;cursor:none}
+
+@media(max-width:820px){
+ body{cursor:auto}#cursor-dot,#cursor-ring{display:none}
+ .brand{opacity:.2}.icons{grid-template-columns:86px;max-height:70vh;overflow:auto}
+ .window,.window.large{width:94vw;height:80vh;min-width:0}.grid2,.grid3,.projectgrid,.casegrid{grid-template-columns:1fr}
+ .explorer{grid-template-columns:1fr}.sidebar{display:none}.profilehead{grid-template-columns:1fr}.stats{grid-template-columns:1fr}
+ .secrethero{grid-template-columns:1fr}.pins{grid-template-columns:repeat(3,1fr)}.resume-paper{padding:25px}
+}
+
+#terminalInput::placeholder{color:#4f5d66;opacity:1}
+
+
+.terminal-actions{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ padding:0 0 11px;margin-bottom:11px;border-bottom:1px solid #141a1e;
+ color:#65737c;font:10px Consolas,monospace;letter-spacing:1px
+}
+.terminal-status{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--secret);box-shadow:0 0 9px var(--secret);margin-right:7px}
+.terminal-close{
+ border:1px solid #243038;background:#080d10;color:#9baab3;
+ border-radius:7px;padding:6px 9px;font:10px Consolas,monospace;letter-spacing:.5px;cursor:none
+}
+.terminal-close:hover{border-color:#a84c5e;background:#241015;color:#f1c4cc}
+.terminal-close span{font-size:14px;margin-left:5px;vertical-align:-1px}
+.contact-card{display:grid;gap:10px}
+.contact-link{
+ display:flex;align-items:center;gap:14px;width:100%;padding:15px 16px;
+ border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025);
+ transition:background .18s,border-color .18s,transform .18s;cursor:none
+}
+.contact-link:hover{background:rgba(126,183,216,.055);border-color:rgba(126,183,216,.36);transform:translateX(3px)}
+.contact-symbol{
+ width:38px;height:38px;border-radius:10px;display:grid;place-items:center;
+ background:#0d151f;border:1px solid #24394a;flex:0 0 auto
+}
+.contact-symbol svg{width:19px;height:19px;stroke:#9dc5db;fill:none;stroke-width:1.6}
+.contact-copy{min-width:0;flex:1}
+.contact-copy b{display:block;font-size:12px;margin-bottom:3px}
+.contact-copy span{display:block;color:#7c8996;font-size:11.5px;overflow-wrap:anywhere}
+.contact-arrow{color:#637583;font-size:17px}
+
+</style>
+
+<style>
+/* ===== ONLY WALLPAPER + COLOR THEME CHANGED ===== */
+:root{
+ --bg:#f7e8f0 !important;
+ --bg2:#efd7e4 !important;
+ --glass:rgba(255,242,248,.91) !important;
+ --glass2:rgba(249,229,239,.96) !important;
+ --line:rgba(111,20,60,.18) !important;
+ --text:#3b1728 !important;
+ --muted:#866070 !important;
+ --accent:#8f174b !important;
+ --accent2:#c94d82 !important;
+ --danger:#9e2858 !important;
+}
+#desktop{
+ background-image:url('jana_portfolio_wallpaper.jpeg') !important;
+ background-size:100% 100% !important;
+ background-position:center center !important;
+ background-repeat:no-repeat !important;
+}
+#desktop:after{display:none !important;content:none !important;}
+.brand{display:none !important;}
+
+.window{
+ background:rgba(255,242,248,.91) !important;
+ border-color:rgba(117,22,62,.22) !important;
+ box-shadow:0 28px 90px rgba(74,14,39,.22) !important;
+}
+.winbar{
+ background:rgba(244,214,228,.91) !important;
+ border-bottom-color:rgba(117,22,62,.16) !important;
+}
+.title,.control{color:#6f2445 !important;}
+.control.close:hover{background:#8f174b !important;color:#fff !important;}
+
+.iconbox,.pinglyph,.projicon,.contact-symbol{
+ background:linear-gradient(145deg,#a72460,#74183f) !important;
+ border-color:rgba(88,13,47,.28) !important;
+}
+.iconbox svg,.pinglyph svg,.projicon svg,.contact-symbol svg,
+.title svg,.tb svg{
+ stroke:#ffe1ed !important;
+}
+.iconlabel{
+ color:#6f173d !important;
+ text-shadow:0 1px 5px rgba(255,239,246,.95) !important;
+}
+.card,.project,.contact-link{
+ background:rgba(255,249,252,.66) !important;
+ border-color:rgba(123,28,68,.15) !important;
+}
+.tag{
+ background:rgba(143,23,75,.08) !important;
+ border-color:rgba(143,23,75,.22) !important;
+ color:#8f174b !important;
+}
+#taskbar{
+ background:rgba(244,211,226,.88) !important;
+ border-color:rgba(119,25,65,.18) !important;
+}
+#start{
+ background:rgba(255,238,246,.97) !important;
+}
+#startBtn{
+ background:linear-gradient(145deg,#a52b62,#7c1945) !important;
+ color:#fff4f8 !important;
+}
+.tb:hover,.side:hover,.side.active{
+ background:rgba(143,23,75,.10) !important;
+}
+#cursor-dot,.cursor-trail{background:#c94d82 !important;}
+#cursor-ring{border-color:#9f2d60 !important;}
+body.cursor-hover #cursor-ring{
+ border-color:#c94d82 !important;
+ background:rgba(201,77,130,.09) !important;
+}
+.contact-link:hover{
+ background:rgba(201,77,130,.08) !important;
+ border-color:rgba(143,23,75,.30) !important;
+}
+.contact-copy span{color:#866070 !important;}
+.contact-arrow{color:#9c3e66 !important;}
+
+/* Terminal keeps the dark character of the original design,
+   but is recolored to the deep wine tones from the uploaded image. */
+.terminal{background:#260713 !important;color:#f5dce7 !important;}
+.termheader{color:#f5dce7 !important;}
+.cblue{color:#df6a9e !important;}
+.cdim{color:#a77a8d !important;}
+.prompt{color:#df6a9e !important;}
+#terminalInput{color:#fff0f6 !important;caret-color:#e35e99 !important;}
+#terminalInput::placeholder{color:#845266 !important;}
+.terminal-actions{
+ border-bottom-color:#4b142b !important;
+ color:#a97a8e !important;
+}
+.terminal-close{
+ border-color:#6d2141 !important;
+ background:#320b1c !important;
+ color:#d8a9bc !important;
+}
+.terminal-close:hover{
+ border-color:#c94d82 !important;
+ background:#56142f !important;
+ color:#fff !important;
+}
+.terminal-status{
+ background:#df6a9e !important;
+ box-shadow:0 0 9px #df6a9e !important;
+}
+/* Classified mode remains intentionally green/security-themed. */
+#secret{background:#020706 !important;color:#d7f8ea !important;}
+</style>
+
+
+<style>
+/* Desktop typography inspired by the supplied reference */
+.brand{
+ display:block !important;
+ position:absolute !important;
+ left:50% !important;
+ top:46% !important;
+ transform:translate(-50%,-50%) !important;
+ width:auto !important;
+ text-align:center !important;
+ pointer-events:none !important;
+ z-index:1 !important;
+}
+.brand h1{
+ margin:0 !important;
+ font-family:Georgia,"Times New Roman",serif !important;
+ font-style:italic !important;
+ font-weight:900 !important;
+ font-size:clamp(90px,14vw,205px) !important;
+ line-height:.78 !important;
+ letter-spacing:-12px !important;
+ text-transform:lowercase !important;
+ color:#8e174b !important;
+ -webkit-text-stroke:1px #651033 !important;
+ text-shadow:
+   2px 2px 0 #d15a8d,
+   5px 6px 0 #8f174b,
+   9px 12px 0 #641033,
+   14px 19px 17px rgba(66,10,34,.34) !important;
+}
+.brand h1::before{content:"portfolio" !important;font-size:0}
+.brand h1{font-size:0 !important}
+.brand h1::after{
+ content:"portfolio";
+ font-family:Georgia,"Times New Roman",serif;
+ font-style:italic;font-weight:900;
+ font-size:clamp(90px,14vw,205px);
+ line-height:.78;letter-spacing:-12px;
+ color:#8e174b;
+ -webkit-text-stroke:1px #651033;
+ text-shadow:2px 2px 0 #d15a8d,5px 6px 0 #8f174b,9px 12px 0 #641033,14px 19px 17px rgba(66,10,34,.34);
+}
+.brand p{
+ margin:40px 0 0 !important;
+ color:#9c2458 !important;
+ font-size:11px !important;
+ font-weight:700 !important;
+ letter-spacing:2.5px !important;
+}
+.brand p::before{content:"BY JANA ALMUTAIRI";font-size:11px}
+.brand p{font-size:0 !important}
+
+.ref-star{position:absolute;z-index:1;pointer-events:none;width:38px;height:38px;filter:drop-shadow(5px 7px 4px rgba(77,15,41,.20))}
+.ref-star:before,.ref-star:after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#e489b0,#77173f 55%,#4c0d29)}
+.ref-star:before{width:8px;height:100%;clip-path:polygon(50% 0,63% 39%,100% 50%,63% 61%,50% 100%,37% 61%,0 50%,37% 39%)}
+.ref-star:after{width:100%;height:8px;clip-path:polygon(0 50%,39% 37%,50% 0,61% 37%,100% 50%,61% 63%,50% 100%,39% 63%)}
+.ref-star.one{left:18%;top:15%;transform:scale(1.25) rotate(5deg)}
+.ref-star.two{left:23%;top:11%;transform:scale(.48)}
+.ref-star.three{right:18%;top:13%;transform:scale(1.25)}
+.ref-star.four{right:13%;top:17%;transform:scale(.72)}
+.ref-star.five{right:10%;top:12%;transform:scale(.42)}
+</style>
+
+
+<style>
+/* Readability pass only — darker text inside windows/cards */
+.window .body,
+.window .body p,
+.window .body li,
+.window .body span:not(.tag):not(.cblue):not(.cdim),
+.window .body div{
+ color:#4a1b30;
+}
+.window h1,.window h2,.window h3,.window h4,
+.card b,.project b,.contact-copy b{
+ color:#64183b !important;
+}
+.window p,.project p,.card p,.contact-copy span{
+ color:#654052 !important;
+}
+.eyebrow{
+ color:#8f174b !important;
+ font-weight:700 !important;
+}
+.tag{
+ color:#751b43 !important;
+ background:rgba(143,23,75,.13) !important;
+ border-color:rgba(111,20,60,.30) !important;
+ font-weight:600 !important;
+}
+.side{
+ color:#623247 !important;
+}
+.side.active,.side:hover{
+ color:#71163e !important;
+ font-weight:700 !important;
+}
+.card,.project,.contact-link{
+ background:rgba(255,247,251,.82) !important;
+}
+.contact-copy b{font-weight:700 !important;}
+.contact-copy span{color:#654052 !important;}
+/* Keep terminal colors intact */
+.terminal,.terminal *{color:inherit;}
+.terminal .cblue{color:#df6a9e !important;}
+.terminal .cdim{color:#b98a9d !important;}
+.terminal .prompt{color:#df6a9e !important;}
+.terminal #terminalInput{color:#fff0f6 !important;}
+</style>
+
+
+<style>
+/* Terminal readability — lighter pink/cream tones */
+.terminal{
+ color:#fbeaf2 !important;
+}
+.terminal #output,
+.terminal #output *,
+.terminal .termheader{
+ color:#f7dce8 !important;
+}
+.terminal .cblue{
+ color:#ff9fc7 !important;
+ font-weight:600 !important;
+}
+.terminal .cdim{
+ color:#d9a9bd !important;
+}
+.terminal .prompt,
+.terminal .prompt span{
+ color:#f18ab5 !important;
+ font-weight:600 !important;
+}
+.terminal #terminalInput{
+ color:#fff5f9 !important;
+ caret-color:#ff9fc7 !important;
+}
+.terminal #terminalInput::placeholder{
+ color:#c98da7 !important;
+ opacity:1 !important;
+}
+.terminal-actions{
+ color:#d6a4b9 !important;
+}
+.terminal-close{
+ color:#f0bfd2 !important;
+}
+</style>
+
+
+<style>
+/* Startup screen — match the pink portfolio theme */
+#boot{
+ background:#f4dce8 !important;
+}
+#boot .bootbox{
+ color:#5b203b !important;
+}
+#boot .bootlogo{
+ color:#8f174b !important;
+ text-shadow:0 2px 0 #d15a8d,0 7px 14px rgba(91,20,51,.18) !important;
+}
+#boot .bootline{
+ background:rgba(111,23,61,.14) !important;
+}
+#boot .bootline span{
+ background:linear-gradient(90deg,#8f174b,#d15a8d,#c94d82) !important;
+}
+#boot .bootsub{
+ color:#8b6072 !important;
+}
+#boot button{
+ color:#6f173d !important;
+ border-color:rgba(111,23,61,.34) !important;
+ background:rgba(255,246,250,.72) !important;
+}
+#boot button:hover{
+ background:#8f174b !important;
+ color:#fff5f9 !important;
+ border-color:#8f174b !important;
+}
+</style>
+
+</head>
+<body>
+<div id="cursor-dot"></div><div id="cursor-ring"></div>
+<div id="boot"><div class="bootbox"><div class="bootlogo">JANA<span>.</span>OS</div><div class="bootline"><i></i></div><div id="bootText">loading personal environment...</div></div></div>
+
+<div id="desktop">
+<div class="ref-star one"></div>
+<div class="ref-star two"></div>
+<div class="ref-star three"></div>
+<div class="ref-star four"></div>
+<div class="ref-star five"></div>
+
+ <div class="topline"><span class="live">interactive portfolio online</span><span id="clock"></span></div>
+ <div class="brand"><h1>JANA<b>.</b></h1><p>CYBERSECURITY / DATA / TECHNOLOGY</p><small>PERSONAL OPERATING SYSTEM — BUILD 2026</small></div>
+
+ <div class="icons">
+  <div class="icon clickable" onclick="openWin('profile')"><div class="iconbox"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-5 3.2-7.5 7.5-7.5S18.7 16 19.5 21"/></svg></div><div class="iconlabel">Jana.profile</div></div>
+  <div class="icon clickable" onclick="openWin('experience')"><div class="iconbox"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z"/><path d="M9 12l2 2 4-5"/></svg></div><div class="iconlabel">Experience</div></div>
+  <div class="icon clickable" onclick="openWin('projects')"><div class="iconbox"><svg viewBox="0 0 24 24"><path d="M3 7h7l2 2h9v10H3z"/><path d="M3 7V5h7l2 2"/></svg></div><div class="iconlabel">Projects</div></div>
+  <div class="icon clickable" onclick="openWin('skills')"><div class="iconbox"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/></svg></div><div class="iconlabel">Skills.lab</div></div>
+  <div class="icon clickable" onclick="openWin('certs')"><div class="iconbox"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M9 14l-2 7 5-3 5 3-2-7"/></svg></div><div class="iconlabel">Certificates</div></div>
+  <div class="icon clickable" onclick="openWin('resume')"><div class="iconbox"><svg viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5M9 12h6M9 16h6"/></svg></div><div class="iconlabel">My CV</div></div>
+  <div class="icon clickable" onclick="openWin('terminal')"><div class="iconbox"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M7 9l3 3-3 3M12 15h5"/></svg></div><div class="iconlabel">Terminal</div></div>
+  <div class="icon clickable" onclick="openWin('contact')"><div class="iconbox"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M3 6l9 7 9-7"/></svg></div><div class="iconlabel">Contact</div></div>
+ </div>
+
+ <div id="taskbar">
+  <button class="tb clickable" id="startBtn" onclick="toggleStart()"><span>J</span></button>
+  <button class="tb clickable" onclick="openWin('projects')" aria-label="Projects"><svg viewBox="0 0 24 24"><path d="M3 7h7l2 2h9v10H3z"/></svg></button>
+  <button class="tb clickable" onclick="openWin('terminal')" aria-label="Terminal"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M7 9l3 3-3 3M12 15h5"/></svg></button>
+  <button class="tb clickable" onclick="openWin('resume')" aria-label="CV"><svg viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5"/></svg></button>
+ </div>
+
+ <div id="start" class="hidden">
+  <input id="startSearch" placeholder="Search Jana.OS..." oninput="searchPins(this.value)">
+  <div class="stitle"><b>PINNED</b><span>JANA.OS</span></div>
+  <div class="pins">
+   <div class="pin clickable" data-search="profile about jana" onclick="openWin('profile');toggleStart(false)"><div class="pinglyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21c1-5 3-7 7-7s6 2 7 7"/></svg></div>Profile</div>
+   <div class="pin clickable" data-search="experience cybersecurity ministry" onclick="openWin('experience');toggleStart(false)"><div class="pinglyph"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/></svg></div>Experience</div>
+   <div class="pin clickable" data-search="projects" onclick="openWin('projects');toggleStart(false)"><div class="pinglyph"><svg viewBox="0 0 24 24"><path d="M3 7h7l2 2h9v10H3z"/></svg></div>Projects</div>
+   <div class="pin clickable" data-search="skills" onclick="openWin('skills');toggleStart(false)"><div class="pinglyph"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/></svg></div>Skills</div>
+   <div class="pin clickable" data-search="certificates certifications" onclick="openWin('certs');toggleStart(false)"><div class="pinglyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M9 14l-2 7 3-2 3 2 3-2 3 2-2-7"/></svg></div>Certificates</div>
+   <div class="pin clickable" data-search="resume cv" onclick="openWin('resume');toggleStart(false)"><div class="pinglyph"><svg viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6z"/></svg></div>My CV</div>
+   <div class="pin clickable" data-search="terminal secret classified" onclick="openWin('terminal');toggleStart(false)"><div class="pinglyph"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M7 9l3 3-3 3"/></svg></div>Terminal</div>
+   <div class="pin clickable" data-search="contact email linkedin" onclick="openWin('contact');toggleStart(false)"><div class="pinglyph"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M3 6l9 7 9-7"/></svg></div>Contact</div>
+  </div>
+  <div class="recommended">
+   <div class="stitle" style="margin-top:0"><b>RECENT</b><span>Verified</span></div>
+   <div class="rec clickable" onclick="openWin('experience');toggleStart(false)"><div class="recfile">01</div><div>Cybersecurity COOP Trainee<small>Ministry of Health</small></div></div>
+   <div class="rec clickable" onclick="openWin('projects');toggleStart(false)"><div class="recfile">02</div><div>Data Professional Career Insights<small>Power BI project</small></div></div>
+  </div>
+ </div>
+
+ <!-- PROFILE -->
+ <section class="window hidden" id="profile">
+  <div class="winbar"><div class="title"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21c1-5 3-7 7-7s6 2 7 7"/></svg>Jana.profile</div><div class="controls"><button class="control">—</button><button class="control">□</button><button class="control close clickable" onclick="closeWin('profile')">×</button></div></div>
+  <div class="body pad">
+   <div class="profilehead"><div class="avatar">J</div><div><div class="eyebrow">Primary identity</div><h1 style="margin:7px 0 4px">Jana Fawaz Almutairi</h1><div class="meta">Riyadh, Saudi Arabia · Computer Science & Engineering</div></div></div>
+   <div class="stats"><div class="stat"><b>2023–2027</b><span>BACHELOR'S</span></div><div class="stat"><b>Cybersecurity</b><span>CORE FOCUS</span></div><div class="stat"><b>B2</b><span>ENGLISH</span></div></div>
+   <div class="rule"></div><div class="eyebrow">Professional summary</div>
+   <p style="font-size:14.5px;margin-top:10px">Computer Science and Engineering student with hands-on cybersecurity experience through cooperative training at the Ministry of Health, with experience in GRC and cybersecurity compliance, along with exposure to SOC and Blue Team operations. Strong technical foundation in networking, Python, SQL, and data analysis. Seeking a cooperative training opportunity to further develop practical skills in cybersecurity and IT.</p>
+   <div class="rule"></div>
+   <div class="grid2"><div class="card"><div class="eyebrow">Education</div><h3 style="margin-top:10px">Bachelor of Computer Science and Engineering</h3><p>University of Hafr Al-Batin, Saudi Arabia<br>2023 – 2027</p></div><div class="card"><div class="eyebrow">Languages</div><h3 style="margin-top:10px">Arabic</h3><p>Native</p><h3>English</h3><p>Upper-Intermediate (B2)</p></div></div>
+  </div>
+ </section>
+
+ <!-- EXPERIENCE -->
+ <section class="window large hidden" id="experience">
+  <div class="winbar"><div class="title"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/></svg>Experience.secure</div><div class="controls"><button class="control">—</button><button class="control">□</button><button class="control close clickable" onclick="closeWin('experience')">×</button></div></div>
+  <div class="body pad">
+   <div class="eyebrow">Verified work experience</div><h1>Cybersecurity COOP Trainee</h1>
+   <div class="card"><h2 style="margin-bottom:5px">Ministry of Health (MOH)</h2><div class="meta">Riyadh, Saudi Arabia · Jun 28, 2026 – Aug 27, 2026</div></div>
+   <ul class="clean" style="margin-top:22px">
+    <li>Reviewed cybersecurity policies and gained practical exposure to GRC and cybersecurity governance.</li>
+    <li>Developed a complete cybersecurity policy as part of governance training.</li>
+    <li>Assessed compliance evidence and learned the criteria used to determine evidence validity and acceptance.</li>
+    <li>Enhanced an existing cybersecurity compliance program by identifying gaps and strengthening its structure and evidence workflow.</li>
+    <li>Gained hands-on exposure to SOC and Blue Team operations, including security monitoring, alert review, validation, and escalation.</li>
+    <li>Gained exposure to NIST SP 800-34 as part of cybersecurity training.</li>
+   </ul>
+   <div class="card" style="margin-top:20px"><div class="eyebrow">Restricted layer detected</div><p style="margin:9px 0 0">Open Terminal and type <span style="font-family:Consolas;color:#79f3ba">classified</span>.</p></div>
+  </div>
+ </section>
+
+ <!-- PROJECTS -->
+ <section class="window large hidden" id="projects">
+  <div class="winbar"><div class="title"><svg viewBox="0 0 24 24"><path d="M3 7h7l2 2h9v10H3z"/></svg>File Explorer / Projects</div><div class="controls"><button class="control">—</button><button class="control">□</button><button class="control close clickable" onclick="closeWin('projects')">×</button></div></div>
+  <div class="body explorer">
+   <aside class="sidebar"><div class="side active">Projects</div></aside>
+   <div class="files">
+    <div class="eyebrow">This PC / Jana / Projects</div><h2 style="margin-top:8px">Technical Projects</h2>
+    <div class="projectgrid">
+     <div class="project clickable" onclick="projectDetail('excel')"><div class="projicon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8h8M8 12h8M8 16h8M12 4v16"/></svg></div><b>Sales Performance Dashboard</b><small>Microsoft Excel</small></div>
+     <div class="project clickable" onclick="projectDetail('web')"><div class="projicon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 8h18M7 6h.01M10 6h.01"/></svg></div><b>Personal Portfolio Website</b><small>HTML5 · CSS · JavaScript</small></div>
+     <div class="project clickable" onclick="projectDetail('bi')"><div class="projicon"><svg viewBox="0 0 24 24"><path d="M5 19V9h3v10zM10.5 19V5h3v14zM16 19v-7h3v7z"/></svg></div><b>Data Professional Career Insights</b><small>Microsoft Power BI</small></div>
+    </div>
+    <div id="projectDetail" class="card" style="margin-top:18px"><div class="eyebrow">Project preview</div><p style="margin:8px 0 0">Select a project to view the exact CV description.</p></div>
+   </div>
+  </div>
+ </section>
+
+ <!-- SKILLS -->
+ <section class="window large hidden" id="skills">
+  <div class="winbar"><div class="title"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/></svg>Skills.lab</div><div class="controls"><button class="control">—</button><button class="control">□</button><button class="control close clickable" onclick="closeWin('skills')">×</button></div></div>
+  <div class="body pad"><div class="eyebrow">Technical skills / CV source</div><h1>Capability Matrix</h1>
+   <div class="grid2">
+    <div class="card"><h3>Cybersecurity</h3><span class="tag">GRC</span><span class="tag">Cybersecurity Governance</span><span class="tag">Cybersecurity Compliance</span><span class="tag">Compliance Evidence Assessment</span><span class="tag">SOC & Blue Team Fundamentals</span><span class="tag">Security Monitoring & Alert Analysis</span><span class="tag">Incident Response Fundamentals</span></div>
+    <div class="card"><h3>Networking & IT</h3><span class="tag">TCP/IP</span><span class="tag">IPv4/IPv6</span><span class="tag">DNS</span><span class="tag">DHCP</span><span class="tag">VLANs</span><span class="tag">Switches</span><span class="tag">Wireless Networks</span><span class="tag">Operating Systems</span><span class="tag">Computer Hardware</span></div>
+    <div class="card"><h3>Data & Business Intelligence</h3><span class="tag">SQL</span><span class="tag">Microsoft Power BI</span><span class="tag">Microsoft Excel</span><span class="tag">Power Query</span><span class="tag">Data Cleaning & Transformation</span><span class="tag">Data Visualization</span><span class="tag">Pivot Tables</span></div>
+    <div class="card"><h3>Programming & Web Development</h3><span class="tag">Python</span><span class="tag">HTML5</span><span class="tag">CSS</span></div>
+    <div class="card"><h3>Artificial Intelligence</h3><span class="tag">Generative AI</span><span class="tag">Prompt Engineering</span><span class="tag">Large Language Models (LLMs)</span></div>
+    <div class="card"><h3>Soft Skills</h3><span class="tag">Analytical Thinking</span><span class="tag">Problem Solving</span><span class="tag">Communication</span><span class="tag">Teamwork</span><span class="tag">Fast Learner</span></div>
+   </div>
+  </div>
+ </section>
+
+ <!-- CERTS -->
+ <section class="window large hidden" id="certs">
+  <div class="winbar"><div class="title"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M9 14l-2 7 5-3 5 3-2-7"/></svg>Certificates.vault</div><div class="controls"><button class="control">—</button><button class="control">□</button><button class="control close clickable" onclick="closeWin('certs')">×</button></div></div>
+  <div class="body pad"><div class="eyebrow">Credential vault / 09 records</div><h1>Certifications</h1>
+   <div class="grid2">
+    <div class="card"><h3>CompTIA IT Fundamentals+ (ITF+)</h3><p>Ministry of Communications and Information Technology (MCIT), Aug 2026</p></div>
+    <div class="card"><h3>Data Analysis Using Microsoft Power BI</h3><p>Emdad Almarefa, May 2026</p></div>
+    <div class="card"><h3>Data Analysis Using Microsoft Excel</h3><p>Emdad Almarefa, May 2026</p></div>
+    <div class="card"><h3>From Idea To Website</h3><p>IAU Programming club, May 2026</p></div>
+    <div class="card"><h3>Claude 101</h3><p>Anthropic, May 2026</p></div>
+    <div class="card"><h3>Supercharge Your Data Analytics with Generative AI</h3><p>IBM SkillsBuild, Apr 2026</p></div>
+    <div class="card"><h3>Artificial Intelligence and Data Analysis in the Future of Labor Market</h3><p>Deroob & STC, Apr 2026</p></div>
+    <div class="card"><h3>Implementing SQL Databases Using Python</h3><p>Tuwaiq Academy, Mar 2026</p></div>
+    <div class="card"><h3>Intelligent Robotics Bootcamp</h3><p>UHB & Smart Methods, Feb 2026</p></div>
+   </div>
+  </div>
+ </section>
+
+ <!-- RESUME EXACT -->
+ <section class="window large hidden" id="resume">
+  <div class="winbar"><div class="title"><svg viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5"/></svg>Jana_Almutairi_CV_ATS_Skills.pdf — Preview</div><div class="controls"><button class="control">—</button><button class="control">□</button><button class="control close clickable" onclick="closeWin('resume')">×</button></div></div>
+  <div class="body resume-shell">
+   <div class="resume-paper">
+    <h1>JANA FAWAZ ALMUTAIRI</h1>
+    <div class="rmeta">Riyadh, Saudi Arabia • +966 50 186 4162 • jaaanafawaz1434@gmail.com • linkedin.com/in/jana-almutairi-843785338</div>
+    <div class="rline"></div>
+    <h3>PROFESSIONAL SUMMARY</h3>
+    <p>Computer Science and Engineering student with hands-on cybersecurity experience through cooperative training at the Ministry of Health, with experience in GRC and cybersecurity compliance, along with exposure to SOC and Blue Team operations. Strong technical foundation in networking, Python, SQL, and data analysis. Seeking a cooperative training opportunity to further develop practical skills in cybersecurity and IT.</p>
+    <h3>EDUCATION</h3><p><b>Bachelor of Computer Science and Engineering</b><br>University of Hafr Al-Batin, Saudi Arabia | 2023 – 2027</p>
+    <h3>EXPERIENCE</h3><p><b>Cybersecurity COOP Trainee | Ministry of Health (MOH)</b><br>Riyadh, Saudi Arabia | Jun 28, 2026 – Aug 27, 2026</p>
+    <ul><li>Reviewed cybersecurity policies and gained practical exposure to GRC and cybersecurity governance.</li><li>Developed a complete cybersecurity policy as part of governance training.</li><li>Assessed compliance evidence and learned the criteria used to determine evidence validity and acceptance.</li><li>Enhanced an existing cybersecurity compliance program by identifying gaps and strengthening its structure and evidence workflow.</li><li>Gained hands-on exposure to SOC and Blue Team operations, including security monitoring, alert review, validation, and escalation.</li><li>Gained exposure to NIST SP 800-34 as part of cybersecurity training.</li></ul>
+    <h3>TECHNICAL PROJECTS</h3>
+    <p><b>Sales Performance Dashboard | Microsoft Excel</b></p><ul><li>Designed and developed an interactive sales dashboard in Microsoft Excel to analyze sales performance and visualize key business insights</li><li>Created interactive visualizations and filters to improve data readability and support data-driven decision-making.</li></ul>
+    <p><b>Personal Portfolio Website</b></p><ul><li>Designed and developed a responsive personal portfolio website using HTML5, CSS, and JavaScript</li><li>Built a fully responsive UI supporting both mobile and desktop devices</li></ul>
+    <p><b>Data Professional Career Insights Dashboard | Microsoft Power BI</b></p><ul><li>Built an interactive Power BI dashboard analyzing survey responses from 630 data professionals worldwide</li><li>Visualized salary trends, programming language preferences, perceived difficulty of breaking into the data field, and work-life balance and job satisfaction levels</li></ul>
+    <h3>CERTIFICATIONS</h3>
+    <p>CompTIA IT Fundamentals+ (ITF+) | Ministry of Communications and Information Technology (MCIT), Aug 2026<br>
+    Data Analysis Using Microsoft Power BI | Emdad Almarefa, May 2026<br>
+    Data Analysis Using Microsoft Excel | Emdad Almarefa, May 2026<br>
+    From Idea To Website | IAU Programming club, May 2026<br>
+    Claude 101 | Anthropic, May 2026<br>
+    Supercharge Your Data Analytics with Generative AI | IBM SkillsBuild, Apr 2026<br>
+    Artificial Intelligence and Data Analysis in the Future of Labor Market | Deroob & STC, Apr 2026<br>
+    Implementing SQL Databases Using Python | Tuwaiq Academy, Mar 2026<br>
+    Intelligent Robotics Bootcamp | UHB & Smart Methods, Feb 2026</p>
+    <h3>TECHNICAL SKILLS</h3>
+    <div class="skillline"><b>Cybersecurity:</b> GRC | Cybersecurity Governance | Cybersecurity Compliance | Compliance Evidence Assessment | SOC & Blue Team Fundamentals | Security Monitoring & Alert Analysis | Incident Response Fundamentals</div>
+    <div class="skillline"><b>Networking & IT:</b> TCP/IP | IPv4/IPv6 | DNS | DHCP | VLANs | Switches | Wireless Networks | Operating Systems | Computer Hardware</div>
+    <div class="skillline"><b>Data & Business Intelligence:</b> SQL | Microsoft Power BI | Microsoft Excel | Power Query | Data Cleaning & Transformation | Data Visualization | Pivot Tables</div>
+    <div class="skillline"><b>Programming & Web Development:</b> Python | HTML5 | CSS</div>
+    <div class="skillline"><b>Artificial Intelligence:</b> Generative AI | Prompt Engineering | Large Language Models (LLMs)</div>
+    <div class="skillline"><b>Soft Skills:</b> Analytical Thinking | Problem Solving | Communication | Teamwork | Fast Learner</div>
+    <h3>LANGUAGES</h3><p>Arabic: Native<br>English: Upper-Intermediate (B2)</p>
+   </div>
+  </div>
+ </section>
+
+ <!-- CONTACT -->
+ <section class="window hidden" id="contact">
+  <div class="winbar"><div class="title"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M3 6l9 7 9-7"/></svg>Contact.card</div><div class="controls"><button class="control">—</button><button class="control">□</button><button class="control close clickable" onclick="closeWin('contact')">×</button></div></div>
+  <div class="body pad"><div class="eyebrow">Contact channels</div><h1>Let's connect.</h1>
+   <p>Choose a channel and JANA.OS will take you there directly.</p>
+   <div class="contact-card">
+    <a class="contact-link clickable" href="mailto:jaaanafawaz1434@gmail.com">
+      <div class="contact-symbol"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M3 6l9 7 9-7"/></svg></div>
+      <div class="contact-copy"><b>Email</b><span>jaaanafawaz1434@gmail.com</span></div><div class="contact-arrow">↗</div>
+    </a>
+    <a class="contact-link clickable" href="tel:+966501864162">
+      <div class="contact-symbol"><svg viewBox="0 0 24 24"><path d="M7 3l3 5-2 2c1.5 3 3.5 5 6.5 6.5l2-2 4.5 3c-.5 2.5-2 3.5-4.5 3.5C10 21 3 14 3 7.5 3 5 4.5 3.5 7 3z"/></svg></div>
+      <div class="contact-copy"><b>Phone</b><span>+966 50 186 4162</span></div><div class="contact-arrow">↗</div>
+    </a>
+    <a class="contact-link clickable" href="https://www.linkedin.com/in/jana-almutairi-843785338/" target="_blank" rel="noopener noreferrer">
+      <div class="contact-symbol"><svg viewBox="0 0 24 24"><rect x="4" y="9" width="4" height="11"/><path d="M6 4.5v.01M11 20V9h4v2c1-1.5 2.2-2.3 4-2.3 2.7 0 4 1.8 4 5.1V20h-4v-5.3c0-1.7-.6-2.7-2-2.7-1.5 0-2 1.1-2 3V20z"/></svg></div>
+      <div class="contact-copy"><b>LinkedIn</b><span>linkedin.com/in/jana-almutairi-843785338</span></div><div class="contact-arrow">↗</div>
+    </a>
+    <div class="contact-link">
+      <div class="contact-symbol"><svg viewBox="0 0 24 24"><path d="M12 21s6-5.2 6-11a6 6 0 10-12 0c0 5.8 6 11 6 11z"/><circle cx="12" cy="10" r="2"/></svg></div>
+      <div class="contact-copy"><b>Location</b><span>Riyadh, Saudi Arabia</span></div>
+    </div>
+   </div>
+  </div>
+ </section>
+
+ <!-- TERMINAL -->
+ <section class="window hidden" id="terminal" style="width:min(980px,90vw);height:min(600px,76vh)">
+  <div class="winbar"><div class="title"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M7 9l3 3-3 3M12 15h5"/></svg>JANA Terminal</div><div class="controls"><button class="control">—</button><button class="control">□</button><button class="control close clickable" onclick="closeWin('terminal')">×</button></div></div>
+  <div class="body terminal" onclick="if(!event.target.closest('button'))document.getElementById('terminalInput').focus()">
+   <div class="terminal-actions">
+     <div><span class="terminal-status"></span> SESSION ACTIVE</div>
+     <button type="button" class="terminal-close clickable" onclick="event.stopPropagation();closeWin('terminal')">CLOSE TERMINAL <span>×</span></button>
+   </div>
+   <div class="termheader">JANA.OS Terminal [Version 4.1]<br><span class="cdim">Start by typing <span class="cblue">help</span> below.</span></div>
+   <div id="output"><span class="cblue">Welcome to JANA.OS.</span>
+Terminal online.
+</div>
+   <div class="prompt"><span>visitor@jana-os:~$</span><input id="terminalInput" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..."></div>
+  </div>
+ </section>
+</div>
+
+<!-- CLASSIFIED -->
+<section id="secret" class="hidden">
+ <div class="scan"></div><div class="secretwrap">
+  <div class="secrettop"><span>SECURE PERSONNEL INTELLIGENCE DATABASE // JANA.OS</span><span class="granted">● ACCESS GRANTED</span></div>
+  <div class="secrethero"><div><div style="font-size:10px;color:#76efb6;letter-spacing:4px;margin-bottom:12px">SUBJECT IDENTIFIED / FILE JA-2026</div><h1>JANA<br>ALMUTAIRI</h1><span class="stamp">VERIFIED PERSONNEL FILE</span></div>
+   <div class="identity"><div><span>STATUS</span><span class="granted">ACTIVE</span></div><div><span>FIELD</span><span>CYBERSECURITY</span></div><div><span>SECONDARY</span><span>DATA / IT</span></div><div><span>LOCATION</span><span>RIYADH</span></div><div><span>CLEARANCE</span><span class="granted">AUTHORIZED</span></div></div>
+  </div>
+  <div class="casegrid">
+   <div class="case"><h3>CASE 001 // GRC</h3><p>Reviewed cybersecurity policies and gained practical exposure to GRC and cybersecurity governance.</p></div>
+   <div class="case"><h3>CASE 002 // POLICY</h3><p>Developed a complete cybersecurity policy as part of governance training.</p></div>
+   <div class="case"><h3>CASE 003 // COMPLIANCE</h3><p>Assessed compliance evidence and learned the criteria used to determine evidence validity and acceptance.</p></div>
+   <div class="case"><h3>CASE 004 // PROGRAM</h3><p>Enhanced an existing cybersecurity compliance program by identifying gaps and strengthening its structure and evidence workflow.</p></div>
+   <div class="case"><h3>CASE 005 // SOC / BLUE TEAM</h3><p>Gained hands-on exposure to security monitoring, alert review, validation, and escalation.</p></div>
+   <div class="case"><h3>CASE 006 // NIST</h3><p>Gained exposure to NIST SP 800-34 as part of cybersecurity training.</p></div>
+  </div>
+ </div><button id="exitSecret" class="clickable" onclick="exitSecret()">[ ESC ] RETURN TO JANA.OS</button>
+</section>
+
+<script>
+/* Boot */
+const msgs=["loading personal environment...","mounting CV records...","initializing terminal...","verifying security layer...","system ready"];
+msgs.forEach((m,i)=>setTimeout(()=>document.getElementById("bootText").textContent=m,i*330));
+setTimeout(()=>{const b=document.getElementById("boot");b.style.opacity="0";setTimeout(()=>b.classList.add("hidden"),550)},1750);
+
+/* Cursor */
+const dot=document.getElementById("cursor-dot"), ring=document.getElementById("cursor-ring");
+let mx=0,my=0,rx=0,ry=0,lastTrail=0;
+document.addEventListener("mousemove",e=>{
+ mx=e.clientX;my=e.clientY;dot.style.left=mx+"px";dot.style.top=my+"px";
+ if(Date.now()-lastTrail>45){const t=document.createElement("span");t.className="cursor-trail";t.style.left=mx+"px";t.style.top=my+"px";document.body.appendChild(t);setTimeout(()=>t.remove(),650);lastTrail=Date.now()}
+});
+(function follow(){rx+=(mx-rx)*.16;ry+=(my-ry)*.16;ring.style.left=rx+"px";ring.style.top=ry+"px";requestAnimationFrame(follow)})();
+document.addEventListener("mouseover",e=>{if(e.target.closest(".clickable,button,.project,.pin,.icon"))document.body.classList.add("cursor-hover")});
+document.addEventListener("mouseout",e=>{if(e.target.closest(".clickable,button,.project,.pin,.icon"))document.body.classList.remove("cursor-hover")});
+
+/* Clock */
+function clock(){document.getElementById("clock").textContent=new Date().toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"})}clock();setInterval(clock,1000);
+
+/* Windows */
+let z=40;
+function openWin(id){
+ const w=document.getElementById(id);w.classList.remove("hidden");z++;w.style.zIndex=z;
+ if(id==="terminal")setTimeout(()=>document.getElementById("terminalInput").focus(),80)
+}
+function closeWin(id){document.getElementById(id).classList.add("hidden")}
+document.querySelectorAll(".window").forEach(w=>{
+ w.addEventListener("mousedown",()=>{z++;w.style.zIndex=z});
+ const bar=w.querySelector(".winbar");let dragging=false,dx=0,dy=0;
+ bar.addEventListener("mousedown",e=>{
+  if(e.target.closest("button")){e.stopPropagation();return;}dragging=true;const r=w.getBoundingClientRect();dx=e.clientX-r.left;dy=e.clientY-r.top;
+  w.style.transform="none";w.style.left=r.left+"px";w.style.top=r.top+"px"
+ });
+ document.addEventListener("mousemove",e=>{if(!dragging)return;w.style.left=Math.max(0,Math.min(innerWidth-w.offsetWidth,e.clientX-dx))+"px";w.style.top=Math.max(0,Math.min(innerHeight-70-w.offsetHeight,e.clientY-dy))+"px"});
+ document.addEventListener("mouseup",()=>dragging=false)
+});
+
+/* Start menu */
+function toggleStart(force){const s=document.getElementById("start");if(force===false)s.classList.add("hidden");else s.classList.toggle("hidden")}
+document.addEventListener("mousedown",e=>{const s=document.getElementById("start");if(!s.classList.contains("hidden")&&!s.contains(e.target)&&!e.target.closest("#startBtn"))s.classList.add("hidden")});
+function searchPins(q){q=q.toLowerCase();document.querySelectorAll(".pin").forEach(p=>p.style.display=p.dataset.search.includes(q)?"block":"none")}
+
+/* Projects */
+const pd={
+ excel:`<div class="eyebrow">Microsoft Excel</div><h2 style="margin:8px 0">Sales Performance Dashboard</h2><ul class="clean"><li>Designed and developed an interactive sales dashboard in Microsoft Excel to analyze sales performance and visualize key business insights.</li><li>Created interactive visualizations and filters to improve data readability and support data-driven decision-making.</li></ul>`,
+ web:`<div class="eyebrow">Web Development</div><h2 style="margin:8px 0">Personal Portfolio Website</h2><ul class="clean"><li>Designed and developed a responsive personal portfolio website using HTML5, CSS, and JavaScript.</li><li>Built a fully responsive UI supporting both mobile and desktop devices.</li></ul>`,
+ bi:`<div class="eyebrow">Microsoft Power BI</div><h2 style="margin:8px 0">Data Professional Career Insights Dashboard</h2><ul class="clean"><li>Built an interactive Power BI dashboard analyzing survey responses from 630 data professionals worldwide.</li><li>Visualized salary trends, programming language preferences, perceived difficulty of breaking into the data field, and work-life balance and job satisfaction levels.</li></ul>`
+};
+function projectDetail(k){document.getElementById("projectDetail").innerHTML=pd[k]}
+
+/* Terminal — robust plain-text output */
+const input=document.getElementById("terminalInput"), output=document.getElementById("output");
+const commands={
+ help:`AVAILABLE COMMANDS
+whoami          identify portfolio owner
+summary         professional summary
+education       academic record
+experience      cybersecurity experience
+projects        technical projects
+skills          technical skill groups
+certifications  credentials
+languages       languages
+contact         contact information
+classified      request restricted file
+clear           clear terminal`,
+ whoami:`Jana Fawaz Almutairi
+Computer Science & Engineering student
+Riyadh, Saudi Arabia`,
+ summary:`Computer Science and Engineering student with hands-on cybersecurity experience through cooperative training at the Ministry of Health, with experience in GRC and cybersecurity compliance, along with exposure to SOC and Blue Team operations. Strong technical foundation in networking, Python, SQL, and data analysis.`,
+ education:`Bachelor of Computer Science and Engineering
+University of Hafr Al-Batin, Saudi Arabia | 2023 – 2027`,
+ experience:`Cybersecurity COOP Trainee | Ministry of Health (MOH)
+Riyadh, Saudi Arabia | Jun 28, 2026 – Aug 27, 2026
+
+• Reviewed cybersecurity policies and gained practical exposure to GRC and cybersecurity governance.
+• Developed a complete cybersecurity policy as part of governance training.
+• Assessed compliance evidence and learned evidence validity and acceptance criteria.
+• Enhanced an existing cybersecurity compliance program.
+• SOC & Blue Team exposure: monitoring, alert review, validation, escalation.
+• NIST SP 800-34 exposure.`,
+ projects:`01 | Sales Performance Dashboard — Microsoft Excel
+02 | Personal Portfolio Website — HTML5, CSS, JavaScript
+03 | Data Professional Career Insights Dashboard — Microsoft Power BI`,
+ skills:`Cybersecurity:
+GRC | Cybersecurity Governance | Cybersecurity Compliance | Compliance Evidence Assessment | SOC & Blue Team Fundamentals | Security Monitoring & Alert Analysis | Incident Response Fundamentals
+
+Networking & IT:
+TCP/IP | IPv4/IPv6 | DNS | DHCP | VLANs | Switches | Wireless Networks | Operating Systems | Computer Hardware
+
+Data & Business Intelligence:
+SQL | Microsoft Power BI | Microsoft Excel | Power Query | Data Cleaning & Transformation | Data Visualization | Pivot Tables
+
+Programming & Web Development:
+Python | HTML5 | CSS
+
+Artificial Intelligence:
+Generative AI | Prompt Engineering | Large Language Models (LLMs)
+
+Soft Skills:
+Analytical Thinking | Problem Solving | Communication | Teamwork | Fast Learner`,
+ certifications:`01 | CompTIA IT Fundamentals+ (ITF+) — MCIT, Aug 2026
+02 | Data Analysis Using Microsoft Power BI — Emdad Almarefa, May 2026
+03 | Data Analysis Using Microsoft Excel — Emdad Almarefa, May 2026
+04 | From Idea To Website — IAU Programming club, May 2026
+05 | Claude 101 — Anthropic, May 2026
+06 | Supercharge Your Data Analytics with Generative AI — IBM SkillsBuild, Apr 2026
+07 | Artificial Intelligence and Data Analysis in the Future of Labor Market — Deroob & STC, Apr 2026
+08 | Implementing SQL Databases Using Python — Tuwaiq Academy, Mar 2026
+09 | Intelligent Robotics Bootcamp — UHB & Smart Methods, Feb 2026`,
+ languages:`Arabic: Native
+English: Upper-Intermediate (B2)`,
+ contact:`Riyadh, Saudi Arabia
+jaaanafawaz1434@gmail.com
++966 50 186 4162
+linkedin.com/in/jana-almutairi-843785338`
+};
+function addTerminal(text,cls=""){const span=document.createElement("span");if(cls)span.className=cls;span.textContent=text;output.appendChild(span);output.appendChild(document.createTextNode("\n"));output.scrollTop=output.scrollHeight}
+function run(){
+ const raw=input.value.trim();if(!raw)return;const c=raw.toLowerCase();addTerminal("visitor@jana-os:~$ "+raw,"cgreen");
+ if(c==="clear"){output.innerHTML="";input.value="";return}
+ if(c==="classified"){addTerminal("AUTHORIZATION REQUEST RECEIVED...","cblue");addTerminal("identity check: accepted");addTerminal("ACCESS GRANTED.","cgreen");input.value="";setTimeout(()=>document.getElementById("secret").classList.remove("hidden"),600);return}
+ addTerminal(commands[c]||`command not found: ${raw}\nType "help" for available commands.`);
+ input.value="";
+}
+input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();run()}});
+input.addEventListener("click",e=>e.stopPropagation());
+
+/* Secret */
+function exitSecret(){document.getElementById("secret").classList.add("hidden");openWin("terminal")}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!document.getElementById("secret").classList.contains("hidden"))exitSecret()});
+</script>
+</body>
+</html>
